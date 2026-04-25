@@ -1,6 +1,9 @@
 package communication.dto;
 
-public class ResponseData {
+import java.io.Serializable;
+
+public class ResponseData implements Serializable {
+    private static final long serialVersionUID = 1L;
     ResponseStatus status;
     String message;
     Object result;

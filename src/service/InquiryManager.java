@@ -2,12 +2,10 @@ package service;
 
 import data.*;
 import Repository.InquiryRepository;
+import Repository.NextCodeValRepository;
 import Repository.ReflectionRepository;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.*;
 
 public class InquiryManager {
@@ -15,6 +13,7 @@ public class InquiryManager {
     private static ArrayList<Representative> representatives = new ArrayList<>();
     private static final InquiryRepository inquiryRepo = new InquiryRepository();
     private static final ReflectionRepository reflectionRepo = new ReflectionRepository();
+    private static final NextCodeValRepository nextCodeValRepo = new NextCodeValRepository();
     private static boolean isProcessing = false;
 
     static {
@@ -23,17 +22,7 @@ public class InquiryManager {
     }
 
     public static void loadInquiriesFromFiles() {
-        File nextValFile = new File("data/naxtVal");
-        if (nextValFile.exists()) {
-            try (BufferedReader reader = new BufferedReader(new FileReader(nextValFile))) {
-                String line = reader.readLine();
-                if (line != null) {
-                    Inquiry.setNextCodeVal(Integer.valueOf(line));
-                }
-            } catch (IOException | NumberFormatException e) {
-                System.out.println("Error reading nextVal: " + e.getMessage());
-            }
-        }
+        Inquiry.setNextCodeVal(nextCodeValRepo.load());
         String[] types = {"Complaint", "Questions", "Request"};
         for (String type : types) {
             File folder = new File("data/" + type);
@@ -69,6 +58,7 @@ public class InquiryManager {
     public static synchronized void addInquiryFromClient(Inquiry inq) {
         if (inq != null) {
             inquiryRepo.saveFile(inq);
+            nextCodeValRepo.save(Inquiry.getNextCodeVal());
             q.add(inq);
             if (!isProcessing) {
                 isProcessing = true;
