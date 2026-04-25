@@ -1,4 +1,4 @@
-package service; // תיקון 1: התאמה לתיקייה בתמונה
+package service;
 
 import data.*;
 import Repository.InquiryRepository;
@@ -13,15 +13,16 @@ import java.util.*;
 public class InquiryManager {
     private static final Queue<Inquiry> q = new LinkedList<>();
     private static ArrayList<Representative> representatives = new ArrayList<>();
-
     private static final InquiryRepository inquiryRepo = new InquiryRepository();
     private static final ReflectionRepository reflectionRepo = new ReflectionRepository();
+    private static boolean isProcessing = false;
+
     static {
         loadInquiriesFromFiles();
         loadRepresentativesFromFiles();
     }
+
     public static void loadInquiriesFromFiles() {
-        InquiryRepository inquiryRepo = new InquiryRepository();
         File nextValFile = new File("data/naxtVal");
         if (nextValFile.exists()) {
             try (BufferedReader reader = new BufferedReader(new FileReader(nextValFile))) {
@@ -29,7 +30,7 @@ public class InquiryManager {
                 if (line != null) {
                     Inquiry.setNextCodeVal(Integer.valueOf(line));
                 }
-            } catch (IOException e) {
+            } catch (IOException | NumberFormatException e) {
                 System.out.println("Error reading nextVal: " + e.getMessage());
             }
         }
@@ -48,8 +49,7 @@ public class InquiryManager {
                                 inQ.setCode(fileCode);
                                 inquiryRepo.readFile(inQ);
                                 q.add(inQ);
-                            } catch (NumberFormatException e) {
-                                System.out.println("Skipping invalid file name: " + file.getName());
+                            } catch (NumberFormatException e) {System.out.println("Skipping invalid file name: " + file.getName());
                             }
                         }
                     }
@@ -66,21 +66,37 @@ public class InquiryManager {
             default: return null;
         }
     }
-
-
     public static synchronized void addInquiryFromClient(Inquiry inq) {
         if (inq != null) {
-            q.add(inq);
             inquiryRepo.saveFile(inq);
+            q.add(inq);
+            if (!isProcessing) {
+                isProcessing = true;
+                new Thread(() -> {
+                    while (true) {
+                        Inquiry current;
+                        synchronized (q) {
+                            current = q.poll();
+                            if (current == null) {
+                                isProcessing = false;
+                                return;
+                            }
+                        }
+                        new InquiryHandling(current).run();
+                    }
+                }).start();
+            }
         }
     }
 
-    public void processInquiryManager(){
-        while (!q.isEmpty()){
-            Inquiry currentInquiry = q.poll();
-            InquiryHandling inquiryHandling = new InquiryHandling(currentInquiry);
-            inquiryHandling.start();
+    public static void processInitialInquiries() {
+        if (!isProcessing) {
+            addInquiryFromClient(null);
         }
+    }
+
+    public static synchronized Queue<Inquiry> getInquiryQueue() {
+        return new LinkedList<>(q);
     }
 
     public static void loadRepresentativesFromFiles() {
@@ -89,7 +105,6 @@ public class InquiryManager {
             File[] files = folder.listFiles();
             if (files != null) {
                 for (File file : files) {
-                    // קריאה דרך כלי הרפלקשיין החדש שלך
                     Object obj = reflectionRepo.readCsv(file.getPath());
                     if (obj instanceof Representative) {
                         representatives.add((Representative) obj);
