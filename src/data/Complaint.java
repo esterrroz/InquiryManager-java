@@ -1,11 +1,16 @@
 package data;
 
-import handlestorefiles.IForSaving;
+import Repository.IForSaving;
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Scanner;
 
-public class Complaint extends Inquiry implements IForSaving{
+public class Complaint extends Inquiry implements IForSaving , Serializable {
+    private static final long serialVersionUID = 1L;
+    public Complaint() {
+    }
     private String assignedBranch;
 
     public String getAssignedBranch() {

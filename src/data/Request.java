@@ -1,13 +1,15 @@
 package data;
+import Repository.IForSaving;
 
-import handlestorefiles.IForSaving;
-
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Scanner;
 
-public class Request extends Inquiry implements IForSaving
-{
+public class Request extends Inquiry implements IForSaving, Serializable
+{private static final long serialVersionUID = 1L;
+    public Request() {
+    }
     public void fillDataByUser(){
         Scanner scanner = new Scanner(System.in);
         System.out.println("Describe the request:");
