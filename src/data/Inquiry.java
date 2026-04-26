@@ -1,16 +1,20 @@
 package data;
-import handlestorefiles.IForSaving;
+import Repository.IForSaving;
 
 import java.io.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Scanner;
 
-public abstract class Inquiry implements IForSaving {
+public abstract class Inquiry implements IForSaving ,Serializable{
+    private static final long serialVersionUID = 1L;
+    private static final Object codeLock = new Object();
     static Integer nextCodeVal = 0;
     private Integer code;
     private String description;
     private LocalDateTime creationDate;
+//    private String fileName;
+//    private String folderName;
 
     public LocalDateTime getCreationDate() {
         return creationDate;
@@ -32,6 +36,7 @@ public abstract class Inquiry implements IForSaving {
         return code;
     }
 
+
     public void setCode(Integer code) {
         this.code = code;
     }
@@ -48,11 +53,16 @@ public abstract class Inquiry implements IForSaving {
 //        this.creationDate = creationDate;
 //    }
     public Inquiry() {
-        this.description ="";
-        this.code =nextCodeVal++;
+        this.description = "";
+        synchronized (codeLock) {
+            this.code = nextCodeVal++;
+        }
         this.creationDate = LocalDateTime.now();
+    }
 
-
+    protected Inquiry(boolean loadingMode) {
+        this.description = "";
+        this.creationDate = LocalDateTime.now();
     }
     public abstract void fillDataByUser();
     protected void fillDataByUser(LocalDateTime creationDate, String description) {
@@ -68,4 +78,25 @@ public abstract class Inquiry implements IForSaving {
     public abstract void parseData(List<String> values);
 
     public abstract String getFileName();
+
+
+//
+//    public void setFileName(String fileName) {
+//        this.fileName = fileName;
+//    }
+//
+//    public void setFolderName(String folderName) {
+//        this.folderName = folderName;
+//    }
+
+//    @Override
+//    public String getFileName() {
+//        // אם ה-fileName ריק, נחזיר את הקוד כברירת מחדל
+//        return (fileName != null) ? fileName : getCode().toString();
+//    }
+//
+//    @Override
+//    public String getFolderName() {
+//        return folderName;
+//    }
 }

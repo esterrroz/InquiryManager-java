@@ -1,41 +1,28 @@
 package service;
 
-import data.Complaint;
-import data.Inquiry;
-import data.Question;
-import data.Request;
-import java.io.BufferedReader;
+import data.*;
+import Repository.InquiryRepository;
+import Repository.NextCodeValRepository;
+import Repository.ReflectionRepository;
+
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
 
-public class InquiryManager { // הורדנו את ה-Thread, השרת מנהל את ה-Threads
-
-    // משתני הנתונים נשארים - זה הזיכרון של השרת
+public class InquiryManager {
     private static final Queue<Inquiry> q = new LinkedList<>();
     private static ArrayList<Representative> representatives = new ArrayList<>();
+    private static final InquiryRepository inquiryRepo = new InquiryRepository();
+    private static final ReflectionRepository reflectionRepo = new ReflectionRepository();
+    private static final NextCodeValRepository nextCodeValRepo = new NextCodeValRepository();
+    private static boolean isProcessing = false;
 
-    // בלוק סטטי לטעינה ראשונית - חייב להישאר
     static {
         loadInquiriesFromFiles();
         loadRepresentativesFromFiles();
     }
 
-    // ניהול קבצים וטעינה - נשאר (זה התפקיד של השרת)
     public static void loadInquiriesFromFiles() {
-        HandleFiles handleFiles = new HandleFiles();
-        File nextValFile = new File("data/naxtVal");
-        if (nextValFile.exists()) {
-            try (BufferedReader reader = new BufferedReader(new FileReader(nextValFile))) {
-                Inquiry.setNextCodeVal(Integer.valueOf(reader.readLine()));
-            } catch (IOException e) {
-                System.out.println("Error reading nextVal: " + e.getMessage());
-            }
-        }
-
+        Inquiry.setNextCodeVal(nextCodeValRepo.load());
         String[] types = {"Complaint", "Questions", "Request"};
         for (String type : types) {
             File folder = new File("data/" + type);
@@ -45,8 +32,14 @@ public class InquiryManager { // הורדנו את ה-Thread, השרת מנהל 
                     for (File file : files) {
                         Inquiry inQ = createEmptyInquiry(type);
                         if (inQ != null) {
-                            handleFiles.readFile(inQ);
-                            q.add(inQ);
+                            String fileNameOnly = file.getName().replace(".txt", "");
+                            try {
+                                Integer fileCode = Integer.valueOf(fileNameOnly);
+                                inQ.setCode(fileCode);
+                                inquiryRepo.readFile(inQ);
+                                q.add(inQ);
+                            } catch (NumberFormatException e) {System.out.println("Skipping invalid file name: " + file.getName());
+                            }
                         }
                     }
                 }
@@ -56,36 +49,60 @@ public class InquiryManager { // הורדנו את ה-Thread, השרת מנהל 
 
     private static Inquiry createEmptyInquiry(String type) {
         switch (type) {
-            case "Complaint": return new Complaint();
-            case "Questions": return new Question();
-            case "Request": return new Request();
+            case "Complaint": return new Complaint(true);
+            case "Questions": return new Question(true);
+            case "Request": return new Request(true);
             default: return null;
         }
     }
+    public static synchronized void addInquiryFromClient(Inquiry inq) {
+        if (inq != null) {
+            inquiryRepo.saveFile(inq);
+            nextCodeValRepo.save(Inquiry.getNextCodeVal());
+            q.add(inq);
+        }
+        startProcessingIfNeeded();
+    }
+
+    public static synchronized void processInitialInquiries() {
+        startProcessingIfNeeded();
+    }
+
+    private static void startProcessingIfNeeded() {
+        if (!isProcessing && !q.isEmpty()) {
+            isProcessing = true;
+            new Thread(() -> {
+                while (true) {
+                    Inquiry current;
+                    synchronized (InquiryManager.class) {
+                        current = q.poll();
+                        if (current == null) {
+                            isProcessing = false;
+                            return;
+                        }
+                    }
+                    new InquiryHandling(current).start();
+                }
+            }).start();
+        }
+    }
+
+    public static synchronized Queue<Inquiry> getInquiryQueue() {
+        return new LinkedList<>(q);
+    }
 
     public static void loadRepresentativesFromFiles() {
-        HandleFilesReflection handler = new HandleFilesReflection();
         File folder = new File("Representative");
         if (folder.exists() && folder.isDirectory()) {
             File[] files = folder.listFiles();
             if (files != null) {
                 for (File file : files) {
-                    Object obj = handler.readCsv(file.getPath());
+                    Object obj = reflectionRepo.readCsv(file.getPath());
                     if (obj instanceof Representative) {
                         representatives.add((Representative) obj);
                     }
                 }
             }
-        }
-    }
-
-    // עיבוד הפניות - נשאר (זה קורה בתוך השרת)
-    public void processInquiryManager(){
-        InquiryHandling inquiryHandling;
-        while (!q.isEmpty()){
-            Inquiry currentInquiry = q.poll();
-            inquiryHandling = new InquiryHandling(currentInquiry);
-            inquiryHandling.start();
         }
     }
 }
