@@ -11,6 +11,9 @@ public class Question extends Inquiry implements IForSaving , Serializable
     private static final long serialVersionUID = 1L;
     public Question() {
     }
+    public Question(boolean loadingMode) {
+        super(loadingMode);
+    }
     public void fillDataByUser(){
         Scanner scanner = new Scanner(System.in);
         System.out.println("Describe the question.");

@@ -49,9 +49,9 @@ public class InquiryManager {
 
     private static Inquiry createEmptyInquiry(String type) {
         switch (type) {
-            case "Complaint": return new Complaint();
-            case "Questions": return new Question();
-            case "Request": return new Request();
+            case "Complaint": return new Complaint(true);
+            case "Questions": return new Question(true);
+            case "Request": return new Request(true);
             default: return null;
         }
     }
@@ -72,7 +72,7 @@ public class InquiryManager {
                                 return;
                             }
                         }
-                        new InquiryHandling(current).run();
+                        new InquiryHandling(current).start();
                     }
                 }).start();
             }

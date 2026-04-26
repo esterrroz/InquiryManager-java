@@ -52,8 +52,13 @@ public abstract class Inquiry implements IForSaving ,Serializable{
 //        this.creationDate = creationDate;
 //    }
     public Inquiry() {
-        this.description ="";
-        this.code =nextCodeVal++;
+        this.description = "";
+        this.code = nextCodeVal++;
+        this.creationDate = LocalDateTime.now();
+    }
+
+    protected Inquiry(boolean loadingMode) {
+        this.description = "";
         this.creationDate = LocalDateTime.now();
     }
     public abstract void fillDataByUser();

@@ -11,6 +11,9 @@ public class Complaint extends Inquiry implements IForSaving , Serializable {
     private static final long serialVersionUID = 1L;
     public Complaint() {
     }
+    public Complaint(boolean loadingMode) {
+        super(loadingMode);
+    }
     private String assignedBranch;
 
     public String getAssignedBranch() {

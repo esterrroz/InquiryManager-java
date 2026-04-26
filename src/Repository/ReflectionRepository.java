@@ -80,6 +80,8 @@ public class ReflectionRepository {
                 field.set(obj, Boolean.parseBoolean(values[index[0]++]));
             } else if (type == String.class) {
                 field.set(obj, values[index[0]++]);
+            } else if (type == java.time.LocalDateTime.class) {
+                field.set(obj, java.time.LocalDateTime.parse(values[index[0]++]));
             } else {
                 Object inner = buildObjectRecursive(type, values, index);
                 field.set(obj, inner);

@@ -10,6 +10,9 @@ public class Request extends Inquiry implements IForSaving, Serializable
 {private static final long serialVersionUID = 1L;
     public Request() {
     }
+    public Request(boolean loadingMode) {
+        super(loadingMode);
+    }
     public void fillDataByUser(){
         Scanner scanner = new Scanner(System.in);
         System.out.println("Describe the request:");
