@@ -66,7 +66,7 @@ public class HandleClient extends Thread {
     }
 
     private void handleAddInquiry(RequestData request, ObjectOutputStream out) throws IOException {
-        List<Object> params = request.getParameters();
+        List<Inquiry> params = request.getParameters();
         if (params != null && !params.isEmpty() && params.get(0) instanceof Inquiry) {
             Inquiry newInQ = (Inquiry) params.get(0); // לוקחים את האיבר הראשון ועושים לו Casting
             InquiryManager.addInquiryFromClient(newInQ);

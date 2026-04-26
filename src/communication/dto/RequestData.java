@@ -1,12 +1,14 @@
 package communication.dto;
 
+import data.Inquiry;
+
 import java.io.Serializable;
 import java.util.List;
 
 public class RequestData implements Serializable{
     private static final long serialVersionUID = 1L;
     private InquiryManagerActions action;
-    private List<Object> parameters;
+    private List<Inquiry> parameters;
 
     public void setAction(InquiryManagerActions action) {
         this.action = action;
@@ -14,11 +16,11 @@ public class RequestData implements Serializable{
     public InquiryManagerActions getAction() {
         return action;
     }
-    public List<Object> getParameters() {
+    public List<Inquiry> getParameters() {
         return parameters;
     }
 
-    public void setParameters(List<Object> parameters) {
+    public void setParameters(List<Inquiry> parameters) {
         this.parameters = parameters;
     }
 }
