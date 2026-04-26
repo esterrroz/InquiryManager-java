@@ -1,10 +1,8 @@
 package data;
-import Repository.IForSaving;
 
 import java.io.*;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Scanner;
 
 public abstract class Inquiry implements IForSaving ,Serializable{
     private static final long serialVersionUID = 1L;
