@@ -1,5 +1,6 @@
 package Repository;
 
+import data.IForSaving;
 import data.Inquiry;
 
 import java.io.*;
