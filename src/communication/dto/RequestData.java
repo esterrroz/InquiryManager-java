@@ -1,14 +1,12 @@
 package communication.dto;
 
-import communication.dto.InquiryManagerActions;
-
 import java.io.Serializable;
 import java.util.List;
 
 public class RequestData implements Serializable{
     private static final long serialVersionUID = 1L;
-    InquiryManagerActions action;
-    List <Object> parameters;//איזה סוג הרשימה צריך להכיל?
+    private InquiryManagerActions action;
+    private List<Object> parameters;
 
     public void setAction(InquiryManagerActions action) {
         this.action = action;

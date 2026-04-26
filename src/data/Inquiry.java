@@ -8,6 +8,7 @@ import java.util.Scanner;
 
 public abstract class Inquiry implements IForSaving ,Serializable{
     private static final long serialVersionUID = 1L;
+    private static final Object codeLock = new Object();
     static Integer nextCodeVal = 0;
     private Integer code;
     private String description;
@@ -53,7 +54,9 @@ public abstract class Inquiry implements IForSaving ,Serializable{
 //    }
     public Inquiry() {
         this.description = "";
-        this.code = nextCodeVal++;
+        synchronized (codeLock) {
+            this.code = nextCodeVal++;
+        }
         this.creationDate = LocalDateTime.now();
     }
 

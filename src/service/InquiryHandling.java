@@ -10,9 +10,6 @@ public class InquiryHandling extends Thread {
     public InquiryHandling(Inquiry currentInquiry) {
         this.currentInquiry = currentInquiry;
     }
-    public InquiryHandling() {
-        this.currentInquiry = null;
-    }
     @Override
     public void run() {
         try {

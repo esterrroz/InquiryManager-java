@@ -13,4 +13,8 @@ public class ResponseData implements Serializable {
         this.message = message;
         this.result = result;
     }
+
+    public ResponseStatus getStatus() { return status; }
+    public String getMessage() { return message; }
+    public Object getResult() { return result; }
 }

@@ -60,28 +60,30 @@ public class InquiryManager {
             inquiryRepo.saveFile(inq);
             nextCodeValRepo.save(Inquiry.getNextCodeVal());
             q.add(inq);
-            if (!isProcessing) {
-                isProcessing = true;
-                new Thread(() -> {
-                    while (true) {
-                        Inquiry current;
-                        synchronized (q) {
-                            current = q.poll();
-                            if (current == null) {
-                                isProcessing = false;
-                                return;
-                            }
-                        }
-                        new InquiryHandling(current).start();
-                    }
-                }).start();
-            }
         }
+        startProcessingIfNeeded();
     }
 
-    public static void processInitialInquiries() {
-        if (!isProcessing) {
-            addInquiryFromClient(null);
+    public static synchronized void processInitialInquiries() {
+        startProcessingIfNeeded();
+    }
+
+    private static void startProcessingIfNeeded() {
+        if (!isProcessing && !q.isEmpty()) {
+            isProcessing = true;
+            new Thread(() -> {
+                while (true) {
+                    Inquiry current;
+                    synchronized (InquiryManager.class) {
+                        current = q.poll();
+                        if (current == null) {
+                            isProcessing = false;
+                            return;
+                        }
+                    }
+                    new InquiryHandling(current).start();
+                }
+            }).start();
         }
     }
 
