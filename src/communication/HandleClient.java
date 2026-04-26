@@ -22,29 +22,46 @@ public class HandleClient extends Thread {
     }
 
     private void handleClientRequest() {
-        try (ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
-             ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream())) {
+        ObjectOutputStream out = null;
+        ObjectInputStream in = null;
+
+        try {
+            out = new ObjectOutputStream(clientSocket.getOutputStream());
+            in = new ObjectInputStream(clientSocket.getInputStream());
             RequestData requestObj = (RequestData) in.readObject();
             InquiryManagerActions action = requestObj.getAction();
+
             switch (action) {
                 case ADD_INQUIRY:
                     handleAddInquiry(requestObj, out);
                     break;
-
                 case ALL_INQUIRY:
                     handleGetAllInquiries(out);
                     break;
-
                 case TEST:
                     sendResponse(out, ResponseStatus.SUCCESS, "Server is alive!", null);
                     break;
-
                 default:
                     sendResponse(out, ResponseStatus.FAIL, "Unknown action", null);
             }
 
-        } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Communication error: " + e.getMessage());
+        } catch (Exception e) {
+            try {
+                if (out != null) {
+                    sendResponse(out, ResponseStatus.FAIL, "Error: " + e.getMessage(), null);
+                }
+            } catch (IOException ex) {
+                System.err.println("Could not send error response: " + ex.getMessage());
+            }
+        }
+        finally {
+            try {
+                if (in != null) in.close();
+                if (out != null) out.close();
+                if (clientSocket != null) clientSocket.close();
+            } catch (IOException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
     }
 
