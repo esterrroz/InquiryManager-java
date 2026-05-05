@@ -97,4 +97,14 @@ public abstract class Inquiry implements IForSaving ,Serializable{
 //    public String getFolderName() {
 //        return folderName;
 //    }
+
+
+    @Override
+    public String toString() {
+        return "Inquiry{" +
+                "code=" + code +
+                ", description='" + description + '\'' +
+                ", creationDate=" + creationDate +
+                '}';
+    }
 }

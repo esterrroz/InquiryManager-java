@@ -22,7 +22,7 @@ public class InquiryManager {
     }
 
     public static void loadInquiriesFromFiles() {
-        Inquiry.setNextCodeVal(nextCodeValRepo.load());
+        //Inquiry.setNextCodeVal(nextCodeValRepo.load());
         String[] types = {"Complaint", "Questions", "Request"};
         for (String type : types) {
             File folder = new File("data/" + type);
@@ -57,35 +57,36 @@ public class InquiryManager {
     }
     public static synchronized void addInquiryFromClient(Inquiry inq) {
         if (inq != null) {
+            inq.setCode(nextCodeValRepo.load());
             inquiryRepo.saveFile(inq);
-            nextCodeValRepo.save(Inquiry.getNextCodeVal());
+            nextCodeValRepo.save(inq.getCode()+1);
             q.add(inq);
         }
-        startProcessingIfNeeded();
+//        startProcessingIfNeeded();
     }
 
-    public static synchronized void processInitialInquiries() {
-        startProcessingIfNeeded();
-    }
+//    public static synchronized void processInitialInquiries() {
+//        startProcessingIfNeeded();
+//    }
 
-    private static void startProcessingIfNeeded() {
-        if (!isProcessing && !q.isEmpty()) {
-            isProcessing = true;
-            new Thread(() -> {
-                while (true) {
-                    Inquiry current;
-                    synchronized (InquiryManager.class) {
-                        current = q.poll();
-                        if (current == null) {
-                            isProcessing = false;
-                            return;
-                        }
-                    }
-                    new InquiryHandling(current).start();
-                }
-            }).start();
-        }
-    }
+//    private static void startProcessingIfNeeded() {
+//        if (!isProcessing && !q.isEmpty()) {
+//            isProcessing = true;
+//            new Thread(() -> {
+//                while (true) {
+//                    Inquiry current;
+//                    synchronized (InquiryManager.class) {
+//                        current = q.poll();
+//                        if (current == null) {
+//                            isProcessing = false;
+//                            return;
+//                        }
+//                    }
+//                    new InquiryHandling(current).start();
+//                }
+//            }).start();
+//        }
+//    }
 
     public static synchronized Queue<Inquiry> getInquiryQueue() {
         return new LinkedList<>(q);
