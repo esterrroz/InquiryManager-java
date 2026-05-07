@@ -6,6 +6,7 @@ import service.InquiryManager;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,45 +23,47 @@ public class HandleClient extends Thread {
     }
 
     private void handleClientRequest() {
-        ObjectOutputStream out = null;
-        ObjectInputStream in = null;
-
-        try {
-            out = new ObjectOutputStream(clientSocket.getOutputStream());
-            in = new ObjectInputStream(clientSocket.getInputStream());
-            RequestData requestObj = (RequestData) in.readObject();
-            InquiryManagerActions action = requestObj.getAction();
-
-            switch (action) {
-                case ADD_INQUIRY:
-                    handleAddInquiry(requestObj, out);
-                    break;
-                case ALL_INQUIRY:
-                    handleGetAllInquiries(out);
-                    break;
-                case TEST:
-                    sendResponse(out, ResponseStatus.SUCCESS, "Server is alive!", null);
-                    break;
-                default:
-                    sendResponse(out, ResponseStatus.FAIL, "Unknown action", null);
-            }
-
-        } catch (Exception e) {
-            try {
-                if (out != null) {
+        try (ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
+             ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream())) {
+            out.flush();
+            boolean clientConnected = true;
+            while (clientConnected) {
+                try {
+                    Object receivedData = in.readObject();
+                    if (!(receivedData instanceof RequestData)) continue;
+                    RequestData requestObj = (RequestData) receivedData;
+                    InquiryManagerActions action = requestObj.getAction();
+                    switch (action) {
+                        case ADD_INQUIRY:
+                            handleAddInquiry(requestObj, out);
+                            break;
+                        case ALL_INQUIRY:
+                            handleGetAllInquiries(out);
+                            break;
+                        case TEST:
+                            sendResponse(out, ResponseStatus.SUCCESS, "Server is alive!", null);
+                            break;
+                        default:
+                            sendResponse(out, ResponseStatus.FAIL, "Unknown action", null);
+                    }
+                } catch (EOFException | SocketException e) {
+                    clientConnected = false;
+                } catch (Exception e) {
+                    System.err.println("Error handling request: " + e.getMessage());
                     sendResponse(out, ResponseStatus.FAIL, "Error: " + e.getMessage(), null);
+                    clientConnected = false;
                 }
-            } catch (IOException ex) {
-                System.err.println("Could not send error response: " + ex.getMessage());
             }
-        }
-        finally {
+        } catch (IOException e) {
+            System.err.println("Connection error: " + e.getMessage());
+        } finally {
             try {
-                if (in != null) in.close();
-                if (out != null) out.close();
-                if (clientSocket != null) clientSocket.close();
+                if (clientSocket != null && !clientSocket.isClosed()) {
+                    clientSocket.close();
+                }
+                System.out.println("Client disconnected.");
             } catch (IOException e) {
-                System.err.println("Error closing resources: " + e.getMessage());
+                System.err.println("Error closing socket: " + e.getMessage());
             }
         }
     }

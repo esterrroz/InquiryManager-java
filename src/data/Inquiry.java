@@ -1,5 +1,4 @@
 package data;
-import Repository.IForSaving;
 
 import java.io.*;
 import java.time.LocalDateTime;
@@ -99,4 +98,13 @@ public abstract class Inquiry implements IForSaving ,Serializable{
 //    public String getFolderName() {
 //        return folderName;
 //    }
+
+    @Override
+    public String toString() {
+        return "Inquiry{" +
+                "code=" + code +
+                ", description='" + description + '\'' +
+                ", creationDate=" + creationDate +
+                '}';
+    }
 }
