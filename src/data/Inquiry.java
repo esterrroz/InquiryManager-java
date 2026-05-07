@@ -61,6 +61,7 @@ public abstract class Inquiry implements IForSaving ,Serializable{
 //        this.code =nextCodeVal++;
 //        this.creationDate = creationDate;
 //    }
+
     public Inquiry() {
         this.description = "";
         synchronized (codeLock) {
