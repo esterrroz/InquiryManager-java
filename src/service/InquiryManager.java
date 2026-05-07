@@ -63,7 +63,6 @@ public class InquiryManager {
         }
         startProcessingIfNeeded();
     }
-
     public static synchronized void processInitialInquiries() {
         startProcessingIfNeeded();
     }
