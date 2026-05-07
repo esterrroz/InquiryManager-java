@@ -3,5 +3,10 @@ package communication.dto;
 public enum InquiryManagerActions {
     ALL_INQUIRY,
     ADD_INQUIRY,
+    GET_INQUIRY_STATUS,
+    GET_NUMBER_OF_INQUIRIES_ON_MONTH,
+    CANCEL_INQUIRY,
+    REPRESENTATIVE_ENTRY,
+    REPRESENTATIVE_EXIT,
     TEST
 }

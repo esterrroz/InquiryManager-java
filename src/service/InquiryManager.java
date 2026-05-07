@@ -1,5 +1,6 @@
 package service;
 
+import communication.dto.Representative;
 import data.*;
 import Repository.InquiryRepository;
 import Repository.NextCodeValRepository;

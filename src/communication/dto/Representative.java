@@ -1,4 +1,4 @@
-package data;
+package communication.dto;
 
 import java.io.Serializable;
 
