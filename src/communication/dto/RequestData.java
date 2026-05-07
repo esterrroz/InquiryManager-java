@@ -1,5 +1,4 @@
 package communication.dto;
-
 import java.io.Serializable;
 import java.util.List;
 

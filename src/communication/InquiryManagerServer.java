@@ -18,7 +18,6 @@ public class InquiryManagerServer {
     public void startServer() {
         isRunning = true;
         System.out.println("Server is running and waiting for clients...");
-
         while (isRunning) {
             try {
                 Socket connectedClientSocket = myServer.accept();
