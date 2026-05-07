@@ -1,7 +1,5 @@
 package data;
 
-import Repository.IForSaving;
-
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
