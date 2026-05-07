@@ -16,6 +16,42 @@ public class InquiryManager {
     private static final ReflectionRepository reflectionRepo = new ReflectionRepository();
     private static final NextCodeValRepository nextCodeValRepo = new NextCodeValRepository();
     private static boolean isProcessing = false;
+    private static String nameAdministrator="chani pappenhaim"; //מוזמנות להפוך את זה למערך ולהוסיף תשם שלכן;)
+    private static String passwordAdministrator="12345678";
+    private static boolean isAdministrator= false;;
+    private static int idAdministrator=328281111 ;
+
+    public static int getIdAdministrator() {
+        return idAdministrator;
+    }
+
+    public static void setIdAdministrator(int idAdministrator) {
+        InquiryManager.idAdministrator = idAdministrator;
+    }
+
+    public static boolean isAdministrator() {
+        return isAdministrator;
+    }
+
+    public static void setAdministrator(boolean administrator) {
+        isAdministrator = administrator;
+    }
+
+    public static String getPasswordAdministrator() {
+        return passwordAdministrator;
+    }
+
+    public static void setPasswordAdministrator(String passwordAdministrator) {
+        InquiryManager.passwordAdministrator = passwordAdministrator;
+    }
+
+    public static String getNameAdministrator() {
+        return nameAdministrator;
+    }
+
+    public static void setNameAdministrator(String nameAdministrator) {
+        InquiryManager.nameAdministrator = nameAdministrator;
+    }
 
     static {
         loadInquiriesFromFiles();

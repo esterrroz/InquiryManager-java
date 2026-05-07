@@ -43,6 +43,11 @@ public class HandleClient extends Thread {
                         case TEST:
                             sendResponse(out, ResponseStatus.SUCCESS, "Server is alive!", null);
                             break;
+                        case REPRESENTATIVE_ENTRY:
+                            UsernameAndPasswordVerification(requestObj,out);
+                                break;
+                       //הוספת case לפונצקיות של הנציגים
+                        //בכל פעולה ששייכת למנהל, יש לבדוק האם הוא מחובר כעת isAdministrator אחרת הלקוח יוכל לעקוף את זה;)
                         default:
                             sendResponse(out, ResponseStatus.FAIL, "Unknown action", null);
                     }
@@ -65,6 +70,19 @@ public class HandleClient extends Thread {
             } catch (IOException e) {
                 System.err.println("Error closing socket: " + e.getMessage());
             }
+        }
+    }
+
+    private void UsernameAndPasswordVerification(RequestData request, ObjectOutputStream out) throws IOException {
+        int id = (int) request.getParameters().get(0);
+        String password = (String) request.getParameters().get(1);
+        ResponseData response = new ResponseData();
+        if (id == InquiryManager.getIdAdministrator() && password.equals(InquiryManager.getPasswordAdministrator())) {
+            response.setStatus(ResponseStatus.SUCCESS);
+            sendResponse(out,ResponseStatus.SUCCESS,"Peace and blessings to: "+InquiryManager.getNameAdministrator(),null);
+        }
+        else {
+            sendResponse(out,ResponseStatus.FAIL,"Invalid ID or Password.",null);
         }
     }
 

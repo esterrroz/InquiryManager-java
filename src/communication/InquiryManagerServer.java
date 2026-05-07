@@ -7,6 +7,8 @@ import java.net.Socket;
 public class InquiryManagerServer {
     private ServerSocket myServer;
     private boolean isRunning;
+
+
     public InquiryManagerServer(int port) {
         try {
             this.myServer = new ServerSocket(port);
