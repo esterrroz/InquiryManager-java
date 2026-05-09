@@ -1,12 +1,14 @@
 package communication;
 
+import Repository.InquiryRepository;
 import communication.dto.*;
-import data.Inquiry;
+import data.*;
 import service.InquiryManager;
 
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,8 +40,12 @@ public class HandleClient extends Thread {
                             handleAddInquiry(requestObj, out);
                             break;
                         case ALL_INQUIRY:
-                            handleGetAllInquiries(out);
+                            handleGetAllInquiries( out);
                             break;
+                        case GET_NUMBER_OF_INQUIRIES_ON_MONTH:
+                            handleGetInquiriesOnMonth(requestObj,out);
+                            break;
+
                         case TEST:
                             sendResponse(out, ResponseStatus.SUCCESS, "Server is alive!", null);
                             break;
@@ -102,6 +108,61 @@ public class HandleClient extends Thread {
         ArrayList<Inquiry> list = new ArrayList<>(InquiryManager.getInquiryQueue());
         sendResponse(out, ResponseStatus.SUCCESS, "Success", list);
     }
+
+    private void handleGetInquiriesOnMonth(RequestData request, ObjectOutputStream out){
+
+        int month = (int)request.getParameters().get(0);
+        System.out.println("Fetching inquiries created on month: "+month);
+        try {
+
+            InquiryRepository inquiryRepository = new InquiryRepository();
+
+            ArrayList<Inquiry>result = new ArrayList<Inquiry>();
+
+            String[] types = {"Complaint", "Questions", "Request"};
+            for (String type : types) {
+                File folder = new File("data/" + type);
+                if (folder.exists() && folder.isDirectory()) {
+                    File[] files = folder.listFiles();
+                    if (files != null) {
+                        for (File file : files) {
+                            Inquiry inQ = createEmptyInquiry(type);
+                            if (inQ != null) {
+                                String fileNameOnly = file.getName().replace(".txt", "");
+                                try {
+                                    Integer fileCode = Integer.valueOf(fileNameOnly);
+                                    inQ.setCode(fileCode);
+                                    inquiryRepository.readFile(inQ);
+                                    if (inQ.getCreationDate().getMonth() == Month.of(month))
+                                        result.add(inQ);
+                                } catch (NumberFormatException e) {
+                                    System.out.println("Skipping invalid file name: " + file.getName());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            sendResponse(out,ResponseStatus.SUCCESS,"Getting inquiries created on month "+month+" was performed successfully",result);
+        }catch (Exception ex){
+            try {
+                sendResponse(out,ResponseStatus.FAIL,"Error: "+ex.getMessage(),null);
+            } catch (IOException e) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    private static Inquiry createEmptyInquiry(String type) {
+        switch (type) {
+            case "Complaint": return new Complaint(true);
+            case "Questions": return new Question(true);
+            case "Request": return new Request(true);
+            default: return null;
+        }
+    }
+
+
     private void sendResponse(ObjectOutputStream out, ResponseStatus status, String message, Object data) throws IOException {
         ResponseData response = new ResponseData(status, message, data);
         out.writeObject(response);
