@@ -98,6 +98,7 @@ public class HandleClient extends Thread {
         List<Object> params = request.getParameters();
         if (params != null && !params.isEmpty() && params.get(0) instanceof Inquiry) {
             Inquiry newInQ = (Inquiry) params.get(0); // לוקחים את האיבר הראשון ועושים לו Casting
+            newInQ.setStatus(InquiryStatus.OPEN);
             InquiryManager.addInquiryFromClient(newInQ);
             sendResponse(out, ResponseStatus.SUCCESS, "Inquiry added successfully", newInQ);
         } else {

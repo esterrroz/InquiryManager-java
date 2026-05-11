@@ -55,7 +55,7 @@ public class Complaint extends Inquiry implements IForSaving , Serializable {
         this.setCreationDate(LocalDateTime.parse(values.get(1)));
         this.setDescription(values.get(2));
         this.setStatus(InquiryStatus.valueOf(values.get(3)));
-        if (values.size() > 3) {
+        if (values.size() > 4) {
             this.setAssignedBranch(values.get(4));
         }
     }
