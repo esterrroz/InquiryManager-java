@@ -35,13 +35,14 @@ public class Request extends Inquiry implements IForSaving, Serializable
 
     @Override
     public String getData() {
-        return getCode() + "," + getCreationDate() + "," + getDescription();
+        return getCode() + "," + getCreationDate() + "," + getDescription()+","+getStatus();
     }
     @Override
     public void parseData(List<String> values) {
         this.setCode(Integer.parseInt(values.get(0)));
         this.setCreationDate(LocalDateTime.parse(values.get(1)));
         this.setDescription(values.get(2));
+        this.setStatus(InquiryStatus.valueOf(values.get(3)));
 
     }
 }

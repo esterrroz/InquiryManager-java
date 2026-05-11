@@ -47,15 +47,16 @@ public class Complaint extends Inquiry implements IForSaving , Serializable {
 
     @Override
     public String getData() {
-        return getCode() + "," + getCreationDate() + "," + getDescription() + "," + assignedBranch;
+        return getCode() + "," + getCreationDate() + "," + getDescription() + "," +getStatus()+","+ assignedBranch;
     }
     @Override
     public void parseData(List<String> values) {
         this.setCode(Integer.parseInt(values.get(0)));
         this.setCreationDate(LocalDateTime.parse(values.get(1)));
         this.setDescription(values.get(2));
-        if (values.size() > 3) {
-            this.setAssignedBranch(values.get(3));
+        this.setStatus(InquiryStatus.valueOf(values.get(3)));
+        if (values.size() > 4) {
+            this.setAssignedBranch(values.get(4));
         }
     }
 }
