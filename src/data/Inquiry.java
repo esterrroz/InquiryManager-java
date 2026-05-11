@@ -110,12 +110,14 @@ public abstract class Inquiry implements IForSaving ,Serializable{
 //        return folderName;
 //    }
 
+
     @Override
     public String toString() {
         return "Inquiry{" +
                 "code=" + code +
                 ", description='" + description + '\'' +
                 ", creationDate=" + creationDate +
+                ", status=" + status +
                 '}';
     }
 }
