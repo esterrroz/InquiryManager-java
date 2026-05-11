@@ -12,13 +12,13 @@ import java.util.*;
 public class InquiryManager {
     private static final Queue<Inquiry> q = new LinkedList<>();
     private static ArrayList<Representative> representatives = new ArrayList<>();
+    private static Queue<ActiveInquiry> activeInquiries = new LinkedList<ActiveInquiry>();
     private static final InquiryRepository inquiryRepo = new InquiryRepository();
     private static final ReflectionRepository reflectionRepo = new ReflectionRepository();
     private static final NextCodeValRepository nextCodeValRepo = new NextCodeValRepository();
     private static boolean isProcessing = false;
     private static String nameAdministrator="chani pappenhaim"; //מוזמנות להפוך את זה למערך ולהוסיף תשם שלכן;)
     private static String passwordAdministrator="12345678";
-    private static boolean isAdministrator= false;;
     private static int idAdministrator=328281111 ;
 
     public static int getIdAdministrator() {
@@ -27,14 +27,6 @@ public class InquiryManager {
 
     public static void setIdAdministrator(int idAdministrator) {
         InquiryManager.idAdministrator = idAdministrator;
-    }
-
-    public static boolean isAdministrator() {
-        return isAdministrator;
-    }
-
-    public static void setAdministrator(boolean administrator) {
-        isAdministrator = administrator;
     }
 
     public static String getPasswordAdministrator() {
@@ -55,7 +47,8 @@ public class InquiryManager {
 
     static {
         loadInquiriesFromFiles();
-        loadRepresentativesFromFiles();
+//        loadRepresentativesFromFiles();
+
     }
 
     public static void loadInquiriesFromFiles() {

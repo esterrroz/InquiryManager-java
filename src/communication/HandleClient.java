@@ -47,7 +47,6 @@ public class HandleClient extends Thread {
                             UsernameAndPasswordVerification(requestObj,out);
                                 break;
                        //הוספת case לפונצקיות של הנציגים
-                        //בכל פעולה ששייכת למנהל, יש לבדוק האם הוא מחובר כעת isAdministrator אחרת הלקוח יוכל לעקוף את זה;)
                         default:
                             sendResponse(out, ResponseStatus.FAIL, "Unknown action", null);
                     }
