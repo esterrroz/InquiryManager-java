@@ -29,4 +29,24 @@ public class Representative implements Serializable {
     public String toString() {
         return "Representative{" + "employeeCode=" + employeeCode + ", name='" + name + '\'' + ", id='" + id + '\'' + '}';
     }
+
+    public static int getCounter() {
+        return counter;
+    }
+
+    public static void setCounter(int counter) {
+        Representative.counter = counter;
+    }
+
+    public void setEmployeeCode(int employeeCode) {
+        this.employeeCode = employeeCode;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 }

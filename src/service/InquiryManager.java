@@ -1,5 +1,6 @@
 package service;
 
+import communication.dto.RequestData;
 import data.Representative;
 import data.*;
 import Repository.InquiryRepository;
@@ -7,6 +8,7 @@ import Repository.NextCodeValRepository;
 import Repository.ReflectionRepository;
 
 import java.io.File;
+import java.io.ObjectOutputStream;
 import java.util.*;
 
 public class InquiryManager {
@@ -120,7 +122,6 @@ public class InquiryManager {
     public static synchronized Queue<Inquiry> getInquiryQueue() {
         return new LinkedList<>(q);
     }
-
     public static void loadRepresentativesFromFiles() {
         File folder = new File("Representative");
         if (folder.exists() && folder.isDirectory()) {
@@ -133,6 +134,14 @@ public class InquiryManager {
                     }
                 }
             }
+        }
+    }
+    public static void handleAddRepresentative(RequestData requestObj) {
+        if (requestObj != null && requestObj.getParameters() != null && requestObj.getParameters().size() >= 2) {
+            Representative representative = new Representative();
+            representative.setId(requestObj.getParameters().get(0).toString());
+            representative.setName(requestObj.getParameters().get(1).toString());
+            reflectionRepo.saveCSV(representative, "Representatives");
         }
     }
 }

@@ -8,5 +8,7 @@ public enum InquiryManagerActions {
     CANCEL_INQUIRY,
     REPRESENTATIVE_ENTRY,
     REPRESENTATIVE_EXIT,
-    TEST
+    TEST,
+    ADD_REPRESENTATIVE,
+    MANAGER_LOGIN
 }
