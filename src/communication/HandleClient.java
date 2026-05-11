@@ -52,6 +52,9 @@ public class HandleClient extends Thread {
                         case REPRESENTATIVE_ENTRY:
                             UsernameAndPasswordVerification(requestObj,out);
                                 break;
+                        case GET_INQUIRY_STATUS:
+                            getInquiryStatus(requestObj,out);
+                            break;
                        //הוספת case לפונצקיות של הנציגים
                         default:
                             sendResponse(out, ResponseStatus.FAIL, "Unknown action", null);
@@ -102,6 +105,53 @@ public class HandleClient extends Thread {
         }
     }
 
+    private void getInquiryStatus(RequestData request, ObjectOutputStream out){
+        int inquiryCode = (int)request.getParameters().get(0);
+
+        Inquiry inquiry = findInquiryWithCode(inquiryCode);
+        try {
+            if (inquiry != null) {
+
+                sendResponse(out, ResponseStatus.SUCCESS, "Getting inquiry's status for inquiry no. " + inquiryCode + " was performed successfully", inquiry.getStatus());
+
+            } else{
+                sendResponse(out, ResponseStatus.FAIL, "Inquiry with code " + inquiryCode + " was not found", null);
+            }
+        }catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static Inquiry findInquiryWithCode(int inquiryCode) {
+        System.out.println("findInquiryWithCode function");
+
+        InquiryRepository inquiryRepository = new InquiryRepository();
+
+        String[] types = {"Complaint", "Questions", "Request","History"};
+        Inquiry inquiry;
+        for (String type : types) {
+            File folder = new File("data/" + type);
+            if (folder.exists() && folder.isDirectory()) {
+                File[] files = folder.listFiles();
+                if (files != null) {
+                    for (File file : files) {
+                        if(file.getName().equals(String.valueOf(inquiryCode+".txt"))) {
+                            inquiry = createEmptyInquiry(type);
+                            if(inquiry!=null){
+                                String fileNameOnly = file.getName().replace(".txt", "");
+                                Integer fileCode = Integer.valueOf(fileNameOnly);
+                                inquiry.setCode(fileCode);
+                                inquiryRepository.readFile(inquiry);
+                                return inquiry;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     private void handleGetAllInquiries(ObjectOutputStream out) throws IOException {
         System.out.println("Fetching all inquiries...");
         ArrayList<Inquiry> list = new ArrayList<>(InquiryManager.getInquiryQueue());
@@ -116,7 +166,7 @@ public class HandleClient extends Thread {
 
             InquiryRepository inquiryRepository = new InquiryRepository();
 
-            ArrayList<Inquiry>result = new ArrayList<Inquiry>();
+            int result=0;
 
             String[] types = {"Complaint", "Questions", "Request"};
             for (String type : types) {
@@ -133,7 +183,7 @@ public class HandleClient extends Thread {
                                     inQ.setCode(fileCode);
                                     inquiryRepository.readFile(inQ);
                                     if (inQ.getCreationDate().getMonth() == Month.of(month))
-                                        result.add(inQ);
+                                        result++;
                                 } catch (NumberFormatException e) {
                                     System.out.println("Skipping invalid file name: " + file.getName());
                                 }
