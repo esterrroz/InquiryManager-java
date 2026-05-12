@@ -1,6 +1,7 @@
 package communication;
 
 import Repository.InquiryRepository;
+import Repository.ReflectionRepository;
 import communication.dto.*;
 import data.*;
 import service.InquiryManager;
@@ -11,6 +12,8 @@ import java.net.SocketException;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
+
+
 
 public class HandleClient extends Thread {
     private Socket clientSocket;
@@ -49,28 +52,36 @@ public class HandleClient extends Thread {
                             handleAddInquiry(requestObj, out);
                             break;
                         case ALL_INQUIRY:
-                            handleGetAllInquiries( out);
+                            handleGetAllInquiries(out);
                             break;
                         case GET_NUMBER_OF_INQUIRIES_ON_MONTH:
-                            handleGetInquiriesOnMonth(requestObj,out);
+                            handleGetInquiriesOnMonth(requestObj, out);
                             break;
                         case TEST:
                             sendResponse(out, ResponseStatus.SUCCESS, "Server is alive!", null);
                             break;
                         case MANAGER_LOGIN:
-                            isAdminAuthenticated =UsernameAndPasswordVerification(requestObj,out);
+                            isAdminAuthenticated = UsernameAndPasswordVerification(requestObj, out);
                             sendResponse(out, ResponseStatus.SUCCESS, "Representative added successfully", null);
-                                break;
+                            break;
                         case ADD_REPRESENTATIVE:
                             if (isAdminAuthenticated) {
                                 InquiryManager.handleAddRepresentative(requestObj);
                                 sendResponse(out, ResponseStatus.SUCCESS, "Representative added successfully", null);
-                            }
-                           else {
+                            } else {
                                 sendResponse(out, ResponseStatus.FAIL, "Unauthorized: Manager login required", null);
                             }
                             break;
-                       //הוספת case לפונקציות של הנציגים
+                        case REPRESENTATIVE_ENTRY:
+                              representativeLogin(requestObj,out);
+                            sendResponse(out, ResponseStatus.SUCCESS, "Representative logged in successfully", null);
+                            break;
+                        case REPRESENTATIVE_EXIT:
+                            representativeExit(requestObj,out);
+                            sendResponse(out, ResponseStatus.SUCCESS, "Representative logged out successfully", null);
+                            break;
+
+                        //הוספת case לפונקציות של הנציגים
                         default:
                             sendResponse(out, ResponseStatus.FAIL, "Unknown action", null);
                     }
@@ -96,6 +107,56 @@ public class HandleClient extends Thread {
         }
     }
 
+    private void representativeLogin(RequestData request, ObjectOutputStream out) throws IOException {
+        Representative representative = representativeSearchFiles(request);
+        if (representative != null) {
+            InquiryManager.representativeLoginQueueSearch(representative);
+            sendResponse(out, ResponseStatus.SUCCESS, "Representative logged in successfully", representative);
+        } else {
+            sendResponse(out, ResponseStatus.FAIL, "Representative not found in system files", null);
+        }
+    }
+
+    private void representativeExit(RequestData request, ObjectOutputStream out) throws IOException {
+        Representative representative = representativeSearchFiles(request);
+        if (representative != null) {
+            boolean removed = InquiryManager.representativeExitQueueSearch(representative);
+            if (removed) {
+                sendResponse(out, ResponseStatus.SUCCESS, "Representative logged out successfully", null);
+            } else {
+                sendResponse(out, ResponseStatus.FAIL, "Representative was not active", null);
+            }
+        } else {
+            sendResponse(out, ResponseStatus.FAIL, "Representative not found", null);
+        }
+    }
+    private static Representative representativeSearchFiles(RequestData request) {
+        try {
+            if (request.getParameters() == null || request.getParameters().isEmpty()) return null;
+            String representativeId = request.getParameters().get(0).toString();
+            ReflectionRepository reflectionRepo = new ReflectionRepository();
+            File folder = new File("Representative");
+
+            if (folder.exists() && folder.isDirectory()) {
+                File[] files = folder.listFiles();
+                if (files != null) {
+                    for (File file : files) {
+                        Object obj = reflectionRepo.readCsv(file.getPath());
+                        if (obj instanceof Representative) {
+                            Representative rep = (Representative) obj;
+                            if (rep.getId().equals(representativeId)) {
+                                return rep;
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
 
     private boolean UsernameAndPasswordVerification(RequestData request, ObjectOutputStream out) throws IOException {
         int id = (int) request.getParameters().get(0);
@@ -103,11 +164,10 @@ public class HandleClient extends Thread {
         ResponseData response = new ResponseData();
         if (id == InquiryManager.getIdAdministrator() && password.equals(InquiryManager.getPasswordAdministrator())) {
             response.setStatus(ResponseStatus.SUCCESS);
-            sendResponse(out,ResponseStatus.SUCCESS,"Peace and blessings to: "+InquiryManager.getNameAdministrator(),null);
+            sendResponse(out, ResponseStatus.SUCCESS, "Peace and blessings to: " + InquiryManager.getNameAdministrator(), null);
             return true;
-        }
-        else {
-            sendResponse(out,ResponseStatus.FAIL,"Invalid ID or Password.",null);
+        } else {
+            sendResponse(out, ResponseStatus.FAIL, "Invalid ID or Password.", null);
             return false;
         }
 
@@ -130,15 +190,15 @@ public class HandleClient extends Thread {
         sendResponse(out, ResponseStatus.SUCCESS, "Success", list);
     }
 
-    private void handleGetInquiriesOnMonth(RequestData request, ObjectOutputStream out){
+    private void handleGetInquiriesOnMonth(RequestData request, ObjectOutputStream out) {
 
-        int month = (int)request.getParameters().get(0);
-        System.out.println("Fetching inquiries created on month: "+month);
+        int month = (int) request.getParameters().get(0);
+        System.out.println("Fetching inquiries created on month: " + month);
         try {
 
             InquiryRepository inquiryRepository = new InquiryRepository();
 
-            ArrayList<Inquiry>result = new ArrayList<Inquiry>();
+            ArrayList<Inquiry> result = new ArrayList<Inquiry>();
 
             String[] types = {"Complaint", "Questions", "Request"};
             for (String type : types) {
@@ -164,10 +224,10 @@ public class HandleClient extends Thread {
                     }
                 }
             }
-            sendResponse(out,ResponseStatus.SUCCESS,"Getting inquiries created on month "+month+" was performed successfully",result);
-        }catch (Exception ex){
+            sendResponse(out, ResponseStatus.SUCCESS, "Getting inquiries created on month " + month + " was performed successfully", result);
+        } catch (Exception ex) {
             try {
-                sendResponse(out,ResponseStatus.FAIL,"Error: "+ex.getMessage(),null);
+                sendResponse(out, ResponseStatus.FAIL, "Error: " + ex.getMessage(), null);
             } catch (IOException e) {
                 ex.printStackTrace();
             }
@@ -176,10 +236,14 @@ public class HandleClient extends Thread {
 
     private static Inquiry createEmptyInquiry(String type) {
         switch (type) {
-            case "Complaint": return new Complaint(true);
-            case "Questions": return new Question(true);
-            case "Request": return new Request(true);
-            default: return null;
+            case "Complaint":
+                return new Complaint(true);
+            case "Questions":
+                return new Question(true);
+            case "Request":
+                return new Request(true);
+            default:
+                return null;
         }
     }
 
