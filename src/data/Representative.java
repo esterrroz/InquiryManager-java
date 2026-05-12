@@ -12,7 +12,9 @@ public class Representative implements Serializable {
     public Representative() {
     }
     public Representative(String name, String id) {
-        this.employeeCode = counter++;
+        synchronized (Representative.class) {
+            this.employeeCode = counter++;
+        }
         this.name = name;
         this.id = id;
     }

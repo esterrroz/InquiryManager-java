@@ -141,7 +141,10 @@ public class InquiryManager {
             Representative representative = new Representative();
             representative.setId(requestObj.getParameters().get(0).toString());
             representative.setName(requestObj.getParameters().get(1).toString());
-            reflectionRepo.saveCSV(representative, "Representatives");
+            synchronized (representatives) {
+                representatives.add(representative);
+                reflectionRepo.saveCSV(representative, "Representatives.csv");
+            }
         }
     }
 }
