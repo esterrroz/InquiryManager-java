@@ -121,6 +121,14 @@ public class InquiryManager {
         return new LinkedList<>(q);
     }
 
+    public static ArrayList<Representative> getRepresentatives() {
+        return representatives;
+    }
+
+    public static Queue<ActiveInquiry> getActiveInquiries() {
+        return activeInquiries;
+    }
+
     public static void loadRepresentativesFromFiles() {
         File folder = new File("Representative");
         if (folder.exists() && folder.isDirectory()) {
