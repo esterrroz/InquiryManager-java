@@ -156,4 +156,36 @@ public class InquiryManager {
             }
         }
     }
+    public static synchronized boolean representativeLoginQueueSearch(Representative representative) {
+        for (Representative r : representatives) {
+            if (r.getId().equals(representative.getId())) {
+                return true;
+            }
+        }
+        for (ActiveInquiry active : activeInquiries) {
+            if (active.getRepresentative().getId().equals(representative.getId())) {
+                return true;
+            }
+        }
+        representatives.add(representative);
+        return true;
+    }
+    public static synchronized boolean representativeExitQueueSearch(Representative representative) {
+        for (Representative r : representatives) {
+            if (r.getId().equals(representative.getId())) {
+                {
+                    representatives.remove(representative);
+                    return true;
+                }
+            }
+        }
+        for (ActiveInquiry active : activeInquiries) {
+            if (active.getRepresentative().getId().equals(representative.getId())) {
+                {   active.setRepresentativeIsActive(false);
+                    return true;
+                }
+            }
+        }
+       return false;
+    }
 }
