@@ -43,4 +43,5 @@ public class InquiryManagerServer {
             System.err.println("Error while stopping server: " + e.getMessage());
         }
     }
+
 }

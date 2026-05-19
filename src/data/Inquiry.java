@@ -14,6 +14,16 @@ public abstract class Inquiry implements IForSaving ,Serializable{
     private LocalDateTime creationDate;
 //    private String fileName;
 //    private String folderName;
+private String status = "ACTIVE";
+
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
     public LocalDateTime getCreationDate() {
         return creationDate;

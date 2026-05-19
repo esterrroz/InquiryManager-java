@@ -4,16 +4,22 @@ import data.*;
 import Repository.InquiryRepository;
 import Repository.NextCodeValRepository;
 import Repository.ReflectionRepository;
-
+import java.util.Iterator;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 public class InquiryManager {
     private static final Queue<Inquiry> q = new LinkedList<>();
     private static ArrayList<Representative> representatives = new ArrayList<>();
+    private static final Queue<ActiveInquiry> activeInquiries = new LinkedList<>();
     private static final InquiryRepository inquiryRepo = new InquiryRepository();
     private static final ReflectionRepository reflectionRepo = new ReflectionRepository();
     private static final NextCodeValRepository nextCodeValRepo = new NextCodeValRepository();
+    private static Integer currentInquiryCodeToCancel;
+    public static final ThreadLocal<Integer> currentInquiryCode = new ThreadLocal<>();
     private static boolean isProcessing = false;
 
     static {
@@ -103,6 +109,79 @@ public class InquiryManager {
                     }
                 }
             }
+        }
+    }
+
+
+
+    public static void setCurrentInquiryCodeToCancel(Integer code) {
+        currentInquiryCodeToCancel = code;
+    }
+
+    public static synchronized boolean cancelInquiry() {
+        Integer inquiryCode = currentInquiryCode.get();
+        if (inquiryCode == null) return false;
+
+        Iterator<Inquiry> qIterator = q.iterator();
+        while (qIterator.hasNext()) {
+            Inquiry inq = qIterator.next();
+            if (inq.getCode() != null && inq.getCode().equals(inquiryCode)) {
+                inq.setStatus("CANCELLED");
+                qIterator.remove();
+                moveInquiryToHistoryFiles(inq);
+                currentInquiryCode.remove();
+                return true;
+            }
+        }
+
+        Iterator<ActiveInquiry> activeIterator = activeInquiries.iterator();
+        while (activeIterator.hasNext()) {
+            ActiveInquiry active = activeIterator.next();
+            if (active.getInquiry() != null && active.getInquiry().getCode() != null && active.getInquiry().getCode().equals(inquiryCode)) {
+                Inquiry inq = active.getInquiry();
+                inq.setStatus("CANCELLED");
+
+                activeIterator.remove();
+                moveInquiryToHistoryFiles(inq);
+
+                Representative rep = active.getRepresentative();
+                if (rep != null) {
+                    representatives.add(rep);
+                    System.out.println("Representative " + rep.getName() + " is now free and returned to the queue.");
+                }
+
+                System.out.println("Active Inquiry " + inquiryCode + " was successfully cancelled.");
+                currentInquiryCode.remove();
+                return true;
+            }
+        }
+
+        currentInquiryCode.remove();
+        return false;
+    }
+    private static void moveInquiryToHistoryFiles(Inquiry inq) {
+        String originalPath = "data/" + inq.getFolderName() + "/" + inq.getFileName() + ".txt";
+        File originalFile = new File(originalPath);
+
+        if (originalFile.exists()) {
+            if (originalFile.delete()) {
+                System.out.println("Original file deleted: " + originalPath);
+            } else {
+                System.err.println("Failed to delete original file: " + originalPath);
+            }
+        }
+
+        File historyDir = new File("data/History");
+        if (!historyDir.exists()) {
+            historyDir.mkdirs();
+        }
+
+        String historyPath = "data/History/" + inq.getFileName() + ".txt";
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(historyPath))) {
+            writer.write(inq.getData());
+            System.out.println("Inquiry moved to history file: " + historyPath);
+        } catch (IOException e) {
+            System.err.println("Error writing to history file: " + e.getMessage());
         }
     }
 }

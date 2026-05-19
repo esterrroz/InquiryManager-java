@@ -43,8 +43,12 @@ public class HandleClient extends Thread {
                         case TEST:
                             sendResponse(out, ResponseStatus.SUCCESS, "Server is alive!", null);
                             break;
+                        case CANCEL_INQUIRY:
+                            handleCancelInquiry(requestObj, out);
+                            break;
                         default:
                             sendResponse(out, ResponseStatus.FAIL, "Unknown action", null);
+
                     }
                 } catch (EOFException | SocketException e) {
                     clientConnected = false;
@@ -88,5 +92,27 @@ public class HandleClient extends Thread {
         ResponseData response = new ResponseData(status, message, data);
         out.writeObject(response);
         out.flush();
+
+    }
+    private void handleCancelInquiry(RequestData request, ObjectOutputStream out) throws IOException {
+        List<Object> params = request.getParameters();
+
+        if (params != null && !params.isEmpty() && params.get(0) != null) {
+            try {
+                Integer inquiryCode = Integer.parseInt(params.get(0).toString());
+
+                boolean isCancelled = InquiryManager.cancelInquiry();
+
+                if (isCancelled) {
+                    sendResponse(out, ResponseStatus.SUCCESS, "הפנייה בוטלה בהצלחה והועברה להיסטוריה.", null);
+                } else {
+                    sendResponse(out, ResponseStatus.FAIL, "ביטול נכשל: הפנייה לא נמצאה בתורים הפעילים.", null);
+                }
+            } catch (NumberFormatException e) {
+                sendResponse(out, ResponseStatus.FAIL, "שגיאה: קוד הפנייה שהוזן אינו תקין.", null);
+            }
+        } else {
+            sendResponse(out, ResponseStatus.FAIL, "שגיאה: קוד פנייה חסר בבקשה.", null);
+        }
     }
 }
