@@ -20,8 +20,6 @@ public class InquiryRepository {
         } catch (IOException e) {
             System.err.println("שגיאה בעת שמירת הקובץ: " + e.getMessage());
         }
-
-
     }
     public void deleteFile(IForSaving forSaving){
         File file = new File(forSaving.getFolderName(), forSaving.getFileName()+".txt");

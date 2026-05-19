@@ -1,5 +1,7 @@
 package service;
 
+import communication.dto.RequestData;
+import data.Representative;
 import data.*;
 import Repository.InquiryRepository;
 import Repository.NextCodeValRepository;
@@ -9,6 +11,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.*;
 
 public class InquiryManager {
@@ -21,10 +24,38 @@ public class InquiryManager {
     private static Integer currentInquiryCodeToCancel;
     public static final ThreadLocal<Integer> currentInquiryCode = new ThreadLocal<>();
     private static boolean isProcessing = false;
+    private static String nameAdministrator="chani pappenhaim"; //מוזמנות להפוך את זה למערך ולהוסיף תשם שלכן;)
+    private static String passwordAdministrator="12345678";
+    private static int idAdministrator=328281111 ;
+
+    public static int getIdAdministrator() {
+        return idAdministrator;
+    }
+
+    public static void setIdAdministrator(int idAdministrator) {
+        InquiryManager.idAdministrator = idAdministrator;
+    }
+
+    public static String getPasswordAdministrator() {
+        return passwordAdministrator;
+    }
+
+    public static void setPasswordAdministrator(String passwordAdministrator) {
+        InquiryManager.passwordAdministrator = passwordAdministrator;
+    }
+
+    public static String getNameAdministrator() {
+        return nameAdministrator;
+    }
+
+    public static void setNameAdministrator(String nameAdministrator) {
+        InquiryManager.nameAdministrator = nameAdministrator;
+    }
 
     static {
         loadInquiriesFromFiles();
-        loadRepresentativesFromFiles();
+//        loadRepresentativesFromFiles();
+
     }
 
     public static void loadInquiriesFromFiles() {
@@ -97,6 +128,14 @@ public class InquiryManager {
         return new LinkedList<>(q);
     }
 
+    public static ArrayList<Representative> getRepresentatives() {
+        return representatives;
+    }
+
+    public static Queue<ActiveInquiry> getActiveInquiries() {
+        return activeInquiries;
+    }
+
     public static void loadRepresentativesFromFiles() {
         File folder = new File("Representative");
         if (folder.exists() && folder.isDirectory()) {
@@ -126,7 +165,7 @@ public class InquiryManager {
         while (qIterator.hasNext()) {
             Inquiry inq = qIterator.next();
             if (inq.getCode() != null && inq.getCode().equals(inquiryCode)) {
-                inq.setStatus("CANCELLED");
+                inq.setStatus(InquiryStatus.CANCELED);
                 qIterator.remove();
                 moveInquiryToHistoryFiles(inq);
                 currentInquiryCode.remove();
@@ -139,7 +178,7 @@ public class InquiryManager {
             ActiveInquiry active = activeIterator.next();
             if (active.getInquiry() != null && active.getInquiry().getCode() != null && active.getInquiry().getCode().equals(inquiryCode)) {
                 Inquiry inq = active.getInquiry();
-                inq.setStatus("CANCELLED");
+                inq.setStatus(InquiryStatus.CANCELED);
 
                 activeIterator.remove();
                 moveInquiryToHistoryFiles(inq);
@@ -183,5 +222,49 @@ public class InquiryManager {
         } catch (IOException e) {
             System.err.println("Error writing to history file: " + e.getMessage());
         }
+    }
+
+    public static void handleAddRepresentative(RequestData requestObj) {
+        if (requestObj != null && requestObj.getParameters() != null && requestObj.getParameters().size() >= 2) {
+            Representative representative = new Representative();
+            representative.setId(requestObj.getParameters().get(0).toString());
+            representative.setName(requestObj.getParameters().get(1).toString());
+            synchronized (representatives) {
+                representatives.add(representative);
+                reflectionRepo.saveCSV(representative, "Representatives.csv");
+            }
+        }
+    }
+    public static synchronized boolean representativeLoginQueueSearch(Representative representative) {
+        for (Representative r : representatives) {
+            if (r.getId().equals(representative.getId())) {
+                return true;
+            }
+        }
+        for (ActiveInquiry active : activeInquiries) {
+            if (active.getRepresentative().getId().equals(representative.getId())) {
+                return true;
+            }
+        }
+        representatives.add(representative);
+        return true;
+    }
+    public static synchronized boolean representativeExitQueueSearch(Representative representative) {
+        for (Representative r : representatives) {
+            if (r.getId().equals(representative.getId())) {
+                {
+                    representatives.remove(representative);
+                    return true;
+                }
+            }
+        }
+        for (ActiveInquiry active : activeInquiries) {
+            if (active.getRepresentative().getId().equals(representative.getId())) {
+                {   active.setRepresentativeIsActive(false);
+                    return true;
+                }
+            }
+        }
+       return false;
     }
 }

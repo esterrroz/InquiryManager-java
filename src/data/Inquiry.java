@@ -12,16 +12,17 @@ public abstract class Inquiry implements IForSaving ,Serializable{
     private Integer code;
     private String description;
     private LocalDateTime creationDate;
+    InquiryStatus status;
 //    private String fileName;
 //    private String folderName;
-private String status = "ACTIVE";
+//private String status = "ACTIVE";
 
 
-    public String getStatus() {
+    public InquiryStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(InquiryStatus status) {
         this.status = status;
     }
 
@@ -61,6 +62,7 @@ private String status = "ACTIVE";
 //        this.code =nextCodeVal++;
 //        this.creationDate = creationDate;
 //    }
+
     public Inquiry() {
         this.description = "";
         synchronized (codeLock) {
@@ -109,12 +111,14 @@ private String status = "ACTIVE";
 //        return folderName;
 //    }
 
+
     @Override
     public String toString() {
         return "Inquiry{" +
                 "code=" + code +
                 ", description='" + description + '\'' +
                 ", creationDate=" + creationDate +
+                ", status=" + status +
                 '}';
     }
 }
