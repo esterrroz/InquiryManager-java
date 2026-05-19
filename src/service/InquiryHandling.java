@@ -1,4 +1,4 @@
-package service; // התאמה לתיקייה שלך
+package service;
 
 import data.Inquiry;
 import data.Question;
