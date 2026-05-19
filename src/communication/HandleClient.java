@@ -14,6 +14,15 @@ import java.util.List;
 
 public class HandleClient extends Thread {
     private Socket clientSocket;
+    private boolean isAdminAuthenticated = false;
+
+    public boolean isAdminAuthenticated() {
+        return isAdminAuthenticated;
+    }
+
+    public void setAdminAuthenticated(boolean adminAuthenticated) {
+        isAdminAuthenticated = adminAuthenticated;
+    }
 
     public HandleClient(Socket clientSocket) {
         this.clientSocket = clientSocket;
@@ -45,17 +54,27 @@ public class HandleClient extends Thread {
                         case GET_NUMBER_OF_INQUIRIES_ON_MONTH:
                             handleGetInquiriesOnMonth(requestObj,out);
                             break;
-
                         case TEST:
                             sendResponse(out, ResponseStatus.SUCCESS, "Server is alive!", null);
                             break;
-                        case REPRESENTATIVE_ENTRY:
-                            UsernameAndPasswordVerification(requestObj,out);
+                        case MANAGER_LOGIN:
+                            isAdminAuthenticated =UsernameAndPasswordVerification(requestObj,out);
+                            sendResponse(out, ResponseStatus.SUCCESS, "Representative added successfully", null);
                                 break;
                         case GET_INQUIRY_STATUS:
                             getInquiryStatus(requestObj,out);
                             break;
                        //הוספת case לפונצקיות של הנציגים
+                        case ADD_REPRESENTATIVE:
+                            if (isAdminAuthenticated) {
+                                InquiryManager.handleAddRepresentative(requestObj);
+                                sendResponse(out, ResponseStatus.SUCCESS, "Representative added successfully", null);
+                            }
+                           else {
+                                sendResponse(out, ResponseStatus.FAIL, "Unauthorized: Manager login required", null);
+                            }
+                            break;
+                       //הוספת case לפונקציות של הנציגים
                         default:
                             sendResponse(out, ResponseStatus.FAIL, "Unknown action", null);
                     }
@@ -81,17 +100,21 @@ public class HandleClient extends Thread {
         }
     }
 
-    private void UsernameAndPasswordVerification(RequestData request, ObjectOutputStream out) throws IOException {
+
+    private boolean UsernameAndPasswordVerification(RequestData request, ObjectOutputStream out) throws IOException {
         int id = (int) request.getParameters().get(0);
         String password = (String) request.getParameters().get(1);
         ResponseData response = new ResponseData();
         if (id == InquiryManager.getIdAdministrator() && password.equals(InquiryManager.getPasswordAdministrator())) {
             response.setStatus(ResponseStatus.SUCCESS);
             sendResponse(out,ResponseStatus.SUCCESS,"Peace and blessings to: "+InquiryManager.getNameAdministrator(),null);
+            return true;
         }
         else {
             sendResponse(out,ResponseStatus.FAIL,"Invalid ID or Password.",null);
+            return false;
         }
+
     }
 
     private void handleAddInquiry(RequestData request, ObjectOutputStream out) throws IOException {

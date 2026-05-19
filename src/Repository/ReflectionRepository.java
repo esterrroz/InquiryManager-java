@@ -37,11 +37,10 @@ public class ReflectionRepository {
         File file = new File(filePath);
         File parent = file.getParentFile();
         if (parent != null && !parent.exists()) {
-            parent.mkdirs(); // יצירת תיקיות אם אינן קיימות
+            parent.mkdirs();
         }
 
         try (FileWriter writer = new FileWriter(file)) {
-            // שמירת שם המחלקה בתחילת הקובץ כדי שנדע מה לשחזר בקריאה
             writer.write(obj.getClass().getName() + ",");
             writer.write(getCSVDataRecursive(obj));
             return true;
