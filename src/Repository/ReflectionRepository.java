@@ -2,6 +2,7 @@ package Repository;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 public class ReflectionRepository {
 
@@ -30,8 +31,8 @@ public class ReflectionRepository {
                 } else {
                     result.append(getCSVDataRecursive(value));
                 }
-            } catch (IllegalAccessException e) {
-                System.err.println("Reflection error: " + e.getMessage());
+            }catch (IllegalAccessException e){
+                System.err.println("Reflection error: "+e.getMessage());
             }
         }
         return result.toString();
@@ -49,6 +50,7 @@ public class ReflectionRepository {
         try (FileWriter writer = new FileWriter(file)) {
             writer.write(obj.getClass().getName() + ",");
             writer.write(getCSVDataRecursive(obj));
+            writer.close();
             return true;
         } catch (IOException e) {
             System.err.println("IO Error in saveCSV: " + e.getMessage());
