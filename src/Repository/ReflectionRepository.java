@@ -2,6 +2,7 @@ package Repository;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 public class ReflectionRepository {
 
@@ -11,20 +12,22 @@ public class ReflectionRepository {
         Class<?> clazz = obj.getClass();
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
-            field.setAccessible(true);
-            try {
-                Object value = field.get(obj);
-                if (value == null) continue;
+            if(!Modifier.isStatic(field.getModifiers())) {
+                field.setAccessible(true);
+                try {
+                    Object value = field.get(obj);
+                    if (value == null) continue;
 
-                Class<?> type = field.getType();
-                if (type.isPrimitive() || value instanceof String ||
-                        value instanceof Number || value instanceof Boolean) {
-                    result.append(value.toString()).append(",");
-                } else {
-                    result.append(getCSVDataRecursive(value));
+                    Class<?> type = field.getType();
+                    if (type.isPrimitive() || value instanceof String ||
+                            value instanceof Number || value instanceof Boolean) {
+                        result.append(value.toString()).append(",");
+                    } else {
+                        result.append(getCSVDataRecursive(value));
+                    }
+                } catch (IllegalAccessException e) {
+                    System.err.println("Reflection error: " + e.getMessage());
                 }
-            } catch (IllegalAccessException e) {
-                System.err.println("Reflection error: " + e.getMessage());
             }
         }
         return result.toString();
@@ -43,6 +46,7 @@ public class ReflectionRepository {
         try (FileWriter writer = new FileWriter(file)) {
             writer.write(obj.getClass().getName() + ",");
             writer.write(getCSVDataRecursive(obj));
+            writer.close();
             return true;
         } catch (IOException e) {
             System.err.println("IO Error in saveCSV: " + e.getMessage());
