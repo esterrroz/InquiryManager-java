@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class InquiryManagerServer {
+public class InquiryManagerServer implements Runnable {
     private ServerSocket myServer;
     private boolean isRunning;
 
@@ -46,4 +46,8 @@ public class InquiryManagerServer {
         }
     }
 
+    @Override
+    public void run() {
+        startServer();
+    }
 }
