@@ -8,6 +8,7 @@ import service.InquiryManager;
 public class LinkRepresentativesToInquiries implements Runnable{
     @Override
     public void run() {
+
         while(true){
             Inquiry inquiry;
             Representative representative;
@@ -22,6 +23,7 @@ public class LinkRepresentativesToInquiries implements Runnable{
                                 InquiryManager.getRepresentatives().remove(0);
                                 activeInquiry = new ActiveInquiry(inquiry, representative);
                                 InquiryManager.getActiveInquiries().add(activeInquiry);
+                                System.out.println("[SERVER DEBUG] A new ActiveInquiry was created for inquiry no. "+inquiry.getCode()+" with rep no. "+representative.getId());
                             }
                         }
                     }

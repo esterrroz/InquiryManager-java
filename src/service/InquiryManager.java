@@ -57,6 +57,7 @@ public class InquiryManager {
     }
 
     public static void loadInquiriesFromFiles() {
+        System.out.println("[SERVER DEBUG] Starting loadInquiriesFromFiles");
         Inquiry.setNextCodeVal(nextCodeValRepo.load());
         String[] types = {"Complaint", "Questions", "Request"};
         for (String type : types) {
