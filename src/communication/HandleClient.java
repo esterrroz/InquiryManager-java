@@ -66,27 +66,26 @@ public class HandleClient extends Thread {
 
                         case MANAGER_LOGIN:
                             isAdminAuthenticated = UsernameAndPasswordVerification(requestObj, out);
-                            sendResponse(out, ResponseStatus.SUCCESS, "Representative added successfully", null);
                                 break;
                         case GET_INQUIRY_STATUS:
                             getInquiryStatus(requestObj,out);
                             break;
-                       //הוספת case לפונצקיות של הנציגים
                         case ADD_REPRESENTATIVE:
                             if (isAdminAuthenticated) {
-                                InquiryManager.handleAddRepresentative(requestObj);
+                                boolean representativeExist=InquiryManager.handleAddRepresentative(requestObj);
+                                if(representativeExist)
                                 sendResponse(out, ResponseStatus.SUCCESS, "Representative added successfully", null);
+                                else
+                                    sendResponse(out, ResponseStatus.FAIL, "Representative already exists", null);
                             } else {
                                 sendResponse(out, ResponseStatus.FAIL, "Unauthorized: Manager login required", null);
                             }
                             break;
                         case REPRESENTATIVE_ENTRY:
                               representativeLogin(requestObj,out);
-                            sendResponse(out, ResponseStatus.SUCCESS, "Representative logged in successfully", null);
                             break;
                         case REPRESENTATIVE_EXIT:
                             representativeExit(requestObj,out);
-                            sendResponse(out, ResponseStatus.SUCCESS, "Representative logged out successfully", null);
                             break;
 
                         default:
@@ -140,31 +139,52 @@ public class HandleClient extends Thread {
     }
     private static Representative representativeSearchFiles(RequestData request) {
         try {
-            if (request.getParameters() == null || request.getParameters().isEmpty()) return null;
-            String representativeId = request.getParameters().get(0).toString();
+            if (request.getParameters() == null || request.getParameters().isEmpty()) {
+                System.out.println("[SERVER DEBUG] No parameters found in request.");
+                return null;
+            }
+
+            String representativeId = request.getParameters().get(0).toString().trim();
+            System.out.println("[SERVER DEBUG] Looking for representative ID: '" + representativeId + "'");
+
             ReflectionRepository reflectionRepo = new ReflectionRepository();
-            File folder = new File("Representative");
+            File folder = new File("data/representatives");
+
+            // הדפסת נתיב אבסולוטי כדי לראות איפה השרת מחפש פיזית בדיסק של המחשב
+            System.out.println("[SERVER DEBUG] Searching in absolute path: " + folder.getAbsolutePath());
+            System.out.println("[SERVER DEBUG] Does folder exist? " + folder.exists());
+            System.out.println("[SERVER DEBUG] Is it a directory? " + folder.isDirectory());
 
             if (folder.exists() && folder.isDirectory()) {
                 File[] files = folder.listFiles();
-                if (files != null) {
+                if (files == null || files.length == 0) {
+                    System.out.println("[SERVER DEBUG] Folder is EMPTY! No files found.");
+                } else {
+                    System.out.println("[SERVER DEBUG] Found " + files.length + " files in folder.");
                     for (File file : files) {
+                        System.out.println("[SERVER DEBUG] Reading file: " + file.getName());
                         Object obj = reflectionRepo.readCsv(file.getPath());
                         if (obj instanceof Representative) {
                             Representative rep = (Representative) obj;
-                            if (rep.getId().equals(representativeId)) {
+                            System.out.println("[SERVER DEBUG] Successfully loaded Representative object. ID inside file: '" + rep.getId() + "'");
+                            if (rep.getId() != null && rep.getId().trim().equals(representativeId)) {
+                                System.out.println("[SERVER DEBUG] MATCH FOUND for ID: " + representativeId);
                                 return rep;
                             }
+                        } else {
+                            System.out.println("[SERVER DEBUG] File " + file.getName() + " did not resolve to a Representative object. Got: " + (obj == null ? "null" : obj.getClass().getName()));
                         }
                     }
                 }
             }
+            System.out.println("[SERVER DEBUG] Finished scanning. No match found.");
             return null;
         } catch (Exception e) {
+            System.out.println("[SERVER DEBUG] Critical exception in search: " + e.getMessage());
+            e.printStackTrace();
             return null;
         }
     }
-
 
     private boolean UsernameAndPasswordVerification(RequestData request, ObjectOutputStream out) throws IOException {
         int id = (int) request.getParameters().get(0);
@@ -184,7 +204,7 @@ public class HandleClient extends Thread {
     private void handleAddInquiry(RequestData request, ObjectOutputStream out) throws IOException {
         List<Object> params = request.getParameters();
         if (params != null && !params.isEmpty() && params.get(0) instanceof Inquiry) {
-            Inquiry newInQ = (Inquiry) params.get(0); // לוקחים את האיבר הראשון ועושים לו Casting
+            Inquiry newInQ = (Inquiry) params.get(0);
             newInQ.setStatus(InquiryStatus.OPEN);
             InquiryManager.addInquiryFromClient(newInQ);
             sendResponse(out, ResponseStatus.SUCCESS, "Inquiry added successfully", newInQ);

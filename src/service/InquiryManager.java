@@ -1,17 +1,15 @@
 package service;
 
 import communication.dto.RequestData;
+import communication.dto.ResponseStatus;
 import data.Representative;
 import data.*;
 import Repository.InquiryRepository;
 import Repository.NextCodeValRepository;
 import Repository.ReflectionRepository;
+
+import java.io.*;
 import java.util.Iterator;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.*;
 
 public class InquiryManager {
@@ -99,30 +97,8 @@ public class InquiryManager {
             nextCodeValRepo.save(inq.getCode()+1);
             q.add(inq);
         }
-//        startProcessingIfNeeded();
     }
-//    public static synchronized void processInitialInquiries() {
-//        startProcessingIfNeeded();
-//    }
-//
-//    private static void startProcessingIfNeeded() {
-//        if (!isProcessing && !q.isEmpty()) {
-//            isProcessing = true;
-//            new Thread(() -> {
-//                while (true) {
-//                    Inquiry current;
-//                    synchronized (InquiryManager.class) {
-//                        current = q.poll();
-//                        if (current == null) {
-//                            isProcessing = false;
-//                            return;
-//                        }
-//                    }
-//                    new InquiryHandling(current).start();
-//                }
-//            }).start();
-//        }
-//    }
+
 
     public static synchronized Queue<Inquiry> getInquiryQueue() {
         return new LinkedList<>(q);
@@ -224,16 +200,21 @@ public class InquiryManager {
         }
     }
 
-    public static void handleAddRepresentative(RequestData requestObj) {
+    public static boolean handleAddRepresentative(RequestData requestObj) {
         if (requestObj != null && requestObj.getParameters() != null && requestObj.getParameters().size() >= 2) {
             Representative representative = new Representative();
-            representative.setId(requestObj.getParameters().get(0).toString());
-            representative.setName(requestObj.getParameters().get(1).toString());
+            representative.setId(requestObj.getParameters().get(1).toString());
+            representative.setName(requestObj.getParameters().get(0).toString());
             synchronized (representatives) {
+                boolean idExists = representatives.stream().anyMatch(r -> r.getId().equals(representative.getId()));
+                if (idExists) {
+                    return false;
+                }
                 representatives.add(representative);
-                reflectionRepo.saveCSV(representative, "Representatives.csv");
+                reflectionRepo.saveCSV(representative, "data/representatives/"+representative.getId()+".csv");
             }
         }
+        return true;
     }
     public static synchronized boolean representativeLoginQueueSearch(Representative representative) {
         for (Representative r : representatives) {
