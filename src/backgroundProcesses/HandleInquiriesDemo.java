@@ -23,8 +23,10 @@ public class HandleInquiriesDemo implements Runnable{
                 }
             }
 
-            inquiryHandling = new InquiryHandling(currentActive.getInquiry());
-            inquiryHandling.start();
+            if(currentActive!=null) {
+                inquiryHandling = new InquiryHandling(currentActive.getInquiry());
+                inquiryHandling.start();
+            }
 
         }
     }
