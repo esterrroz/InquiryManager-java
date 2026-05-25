@@ -5,7 +5,7 @@ import backgroundProcesses.LinkRepresentativesToInquiries;
 import communication.InquiryManagerServer;
 
 public class startSystemProcess {
-    static void main() {
+    static void main(String[] args) {
 
         // Launching a server
         InquiryManagerServer server = new InquiryManagerServer(8888);
