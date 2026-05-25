@@ -11,7 +11,7 @@ public class ActiveInquiry {
         this.inquiry = inquiry;
         this.representative = representative;
 
-        this.representativeIsActive = false;
+        this.representativeIsActive = true;
     }
 
     public Inquiry getInquiry() {
@@ -30,7 +30,7 @@ public class ActiveInquiry {
         this.representative = representative;
     }
 
-    public boolean isRepresentativeIsActive() {
+    public boolean isRepresentativeActive() {
         return representativeIsActive;
     }
 
