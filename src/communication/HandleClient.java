@@ -63,7 +63,6 @@ public class HandleClient extends Thread {
                         case CANCEL_INQUIRY:
                             handleCancelInquiry(requestObj, out);
                             break;
-
                         case MANAGER_LOGIN:
                             isAdminAuthenticated = UsernameAndPasswordVerification(requestObj, out);
                                 break;
@@ -145,42 +144,28 @@ public class HandleClient extends Thread {
             }
 
             String representativeId = request.getParameters().get(0).toString().trim();
-            System.out.println("[SERVER DEBUG] Looking for representative ID: '" + representativeId + "'");
-
             ReflectionRepository reflectionRepo = new ReflectionRepository();
             File folder = new File("data/representatives");
-
-            // הדפסת נתיב אבסולוטי כדי לראות איפה השרת מחפש פיזית בדיסק של המחשב
-            System.out.println("[SERVER DEBUG] Searching in absolute path: " + folder.getAbsolutePath());
-            System.out.println("[SERVER DEBUG] Does folder exist? " + folder.exists());
-            System.out.println("[SERVER DEBUG] Is it a directory? " + folder.isDirectory());
 
             if (folder.exists() && folder.isDirectory()) {
                 File[] files = folder.listFiles();
                 if (files == null || files.length == 0) {
                     System.out.println("[SERVER DEBUG] Folder is EMPTY! No files found.");
                 } else {
-                    System.out.println("[SERVER DEBUG] Found " + files.length + " files in folder.");
                     for (File file : files) {
-                        System.out.println("[SERVER DEBUG] Reading file: " + file.getName());
                         Object obj = reflectionRepo.readCsv(file.getPath());
                         if (obj instanceof Representative) {
                             Representative rep = (Representative) obj;
-                            System.out.println("[SERVER DEBUG] Successfully loaded Representative object. ID inside file: '" + rep.getId() + "'");
                             if (rep.getId() != null && rep.getId().trim().equals(representativeId)) {
-                                System.out.println("[SERVER DEBUG] MATCH FOUND for ID: " + representativeId);
                                 return rep;
                             }
                         } else {
-                            System.out.println("[SERVER DEBUG] File " + file.getName() + " did not resolve to a Representative object. Got: " + (obj == null ? "null" : obj.getClass().getName()));
                         }
                     }
                 }
             }
-            System.out.println("[SERVER DEBUG] Finished scanning. No match found.");
             return null;
         } catch (Exception e) {
-            System.out.println("[SERVER DEBUG] Critical exception in search: " + e.getMessage());
             e.printStackTrace();
             return null;
         }
@@ -321,8 +306,6 @@ public class HandleClient extends Thread {
                 return null;
         }
     }
-
-
     private void sendResponse(ObjectOutputStream out, ResponseStatus status, String message, Object data) throws IOException {
         ResponseData response = new ResponseData(status, message, data);
         out.writeObject(response);
@@ -335,9 +318,7 @@ public class HandleClient extends Thread {
         if (params != null && !params.isEmpty() && params.get(0) != null) {
             try {
                 Integer inquiryCode = Integer.parseInt(params.get(0).toString());
-
-                boolean isCancelled = InquiryManager.cancelInquiry();
-
+                boolean isCancelled = InquiryManager.cancelInquiry(inquiryCode);
                 if (isCancelled) {
                     sendResponse(out, ResponseStatus.SUCCESS, "הפנייה בוטלה בהצלחה והועברה להיסטוריה.", null);
                 } else {

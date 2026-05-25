@@ -1,3 +1,5 @@
+import backgroundProcesses.HandleInquiriesDemo;
+import backgroundProcesses.LinkRepresentativesToInquiries;
 import communication.InquiryManagerServer;
 
 public class Main {
