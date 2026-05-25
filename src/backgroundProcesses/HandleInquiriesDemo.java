@@ -26,6 +26,12 @@ public class HandleInquiriesDemo implements Runnable{
             if(currentActive!=null) {
                 inquiryHandling = new InquiryHandling(currentActive.getInquiry());
                 inquiryHandling.start();
+
+                if(!currentActive.isRepresentativeIsActive()){
+                    synchronized (InquiryManager.getRepresentatives()) {
+                        InquiryManager.getRepresentatives().add(currentActive.getRepresentative());
+                    }
+                }
             }
 
         }
