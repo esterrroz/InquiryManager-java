@@ -9,6 +9,10 @@ import Repository.NextCodeValRepository;
 import Repository.ReflectionRepository;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Iterator;
 import java.util.*;
 
@@ -101,8 +105,12 @@ public class InquiryManager {
     }
 
 
+//    public static synchronized Queue<Inquiry> getInquiryQueue() {
+//        return new LinkedList<>(q);
+//    }
+
     public static synchronized Queue<Inquiry> getInquiryQueue() {
-        return new LinkedList<>(q);
+        return q;
     }
 
     public static ArrayList<Representative> getRepresentatives() {
@@ -175,29 +183,17 @@ public class InquiryManager {
         currentInquiryCode.remove();
         return false;
     }
-    private static void moveInquiryToHistoryFiles(Inquiry inq) {
-        String originalPath = "data/" + inq.getFolderName() + "/" + inq.getFileName() + ".txt";
-        File originalFile = new File(originalPath);
+    public static void moveInquiryToHistoryFiles(Inquiry inq) {
+        Path sourcePath = Paths.get("data/"+inq.getFolderName()+"/"+inq.getFileName()+".txt");
+        Path targetPath = Paths.get("data/History/"+inq.getFileName()+".txt");
 
-        if (originalFile.exists()) {
-            if (originalFile.delete()) {
-                System.out.println("Original file deleted: " + originalPath);
-            } else {
-                System.err.println("Failed to delete original file: " + originalPath);
-            }
-        }
+        try {
+            Files.createDirectories(targetPath.getParent());
+            Files.move(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("Inquiry file no. "+inq.getCode()+" was moved to history successfully");
 
-        File historyDir = new File("data/History");
-        if (!historyDir.exists()) {
-            historyDir.mkdirs();
-        }
-
-        String historyPath = "data/History/" + inq.getFileName() + ".txt";
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(historyPath))) {
-            writer.write(inq.getData());
-            System.out.println("Inquiry moved to history file: " + historyPath);
         } catch (IOException e) {
-            System.err.println("Error writing to history file: " + e.getMessage());
+            System.out.println("Failed to move inquiry no. "+inq.getCode()+" to history: " + e.getMessage());
         }
     }
 

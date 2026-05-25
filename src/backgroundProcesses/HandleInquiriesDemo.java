@@ -1,12 +1,8 @@
 package backgroundProcesses;
 
 import data.ActiveInquiry;
-import data.Inquiry;
-import data.Representative;
 import service.InquiryHandling;
 import service.InquiryManager;
-
-import static service.InquiryManager.*;
 
 public class HandleInquiriesDemo implements Runnable{
 
@@ -24,14 +20,9 @@ public class HandleInquiriesDemo implements Runnable{
             }
 
             if(currentActive!=null) {
-                inquiryHandling = new InquiryHandling(currentActive.getInquiry());
+                inquiryHandling = new InquiryHandling(currentActive);
                 inquiryHandling.start();
 
-                if(!currentActive.isRepresentativeIsActive()){
-                    synchronized (InquiryManager.getRepresentatives()) {
-                        InquiryManager.getRepresentatives().add(currentActive.getRepresentative());
-                    }
-                }
             }
 
         }

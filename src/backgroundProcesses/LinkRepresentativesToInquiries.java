@@ -10,32 +10,39 @@ public class LinkRepresentativesToInquiries implements Runnable{
     public void run() {
 
         while(true){
-            Inquiry inquiry;
-            Representative representative;
+            Inquiry inquiry=null;
+            Representative representative=null;
             ActiveInquiry activeInquiry;
-            if(!InquiryManager.getInquiryQueue().isEmpty()){
-                if(!InquiryManager.getRepresentatives().isEmpty()){
-                    synchronized (InquiryManager.getRepresentatives()){
-                        inquiry = InquiryManager.getInquiryQueue().poll();
-                        if(inquiry!=null) {
-                            representative = InquiryManager.getRepresentatives().get(0);
-                            if(representative!=null) {
-                                InquiryManager.getRepresentatives().remove(0);
-                                activeInquiry = new ActiveInquiry(inquiry, representative);
-                                InquiryManager.getActiveInquiries().add(activeInquiry);
-                                System.out.println("[SERVER DEBUG] A new ActiveInquiry was created for inquiry no. "+inquiry.getCode()+" with rep no. "+representative.getId());
+            synchronized (InquiryManager.getInquiryQueue()) {
+                if (!InquiryManager.getInquiryQueue().isEmpty()) {
+                    synchronized (InquiryManager.getRepresentatives()) {
+                        if (!InquiryManager.getRepresentatives().isEmpty()) {
+                            inquiry = InquiryManager.getInquiryQueue().poll();
+                            if (inquiry != null) {
+                                representative = InquiryManager.getRepresentatives().get(0);
+                                if (representative != null) {
+                                    InquiryManager.getRepresentatives().remove(0);
+                                }
                             }
                         }
                     }
                 }
-            }
-            else {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                else {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
+            if(representative!=null&&inquiry!=null){
+                activeInquiry = new ActiveInquiry(inquiry, representative);
+                synchronized (InquiryManager.getActiveInquiries()) {
+                    InquiryManager.getActiveInquiries().add(activeInquiry);
+                }
+                System.out.println("[SERVER DEBUG] A new ActiveInquiry was created for inquiry no. " + inquiry.getCode() + " with rep no. " + representative.getId());
+            }
+
         }
     }
 }
