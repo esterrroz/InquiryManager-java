@@ -1,0 +1,1 @@
+12,2026-05-26T02:06:29.040230600,check cancel inquiry,OPEN

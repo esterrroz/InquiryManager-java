@@ -184,7 +184,7 @@ public class InquiryManager {
         return false;
     }
     public static void moveInquiryToHistoryFiles(Inquiry inq) {
-        Path sourcePath = Paths.get("data/"+inq.getFolderName()+"/"+inq.getFileName()+".txt");
+        Path sourcePath = Paths.get(inq.getFolderName()+"/"+inq.getFileName()+".txt");
         Path targetPath = Paths.get("data/History/"+inq.getFileName()+".txt");
 
         try {
